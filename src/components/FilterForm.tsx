@@ -7,6 +7,7 @@ import { Dice5, Filter, Gamepad } from 'lucide-react';
 interface FilterFormProps {
   onGenerateRandom: (filters: FilterOptions) => void;
   isLoading: boolean;
+  initialFilters?: FilterOptions;
 }
 
 export interface FilterOptions {
@@ -16,17 +17,19 @@ export interface FilterOptions {
   releasedAfter?: string;
   releasedBefore?: string;
   excludeAdditions?: boolean;
+  platformLocked?: boolean;
 }
 
-const FilterForm: React.FC<FilterFormProps> = ({ onGenerateRandom, isLoading }) => {
+const FilterForm: React.FC<FilterFormProps> = ({ onGenerateRandom, isLoading, initialFilters }) => {
   const [platforms, setPlatforms] = useState<ParentPlatform[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
   const [loadingFilters, setLoadingFilters] = useState(true);
-  const [filters, setFilters] = useState<FilterOptions>({
+  const [filters, setFilters] = useState<FilterOptions>(initialFilters || {
     platforms: '',
     genres: '',
     minRating: 0,
-    excludeAdditions: false
+    excludeAdditions: false,
+    platformLocked: false
   });
   const [filtersVisible, setFiltersVisible] = useState(false);
 
@@ -50,6 +53,12 @@ const FilterForm: React.FC<FilterFormProps> = ({ onGenerateRandom, isLoading }) 
     loadFilters();
   }, []);
 
+  useEffect(() => {
+    if (initialFilters) {
+      setFilters(prev => ({ ...prev, ...initialFilters }));
+    }
+  }, [initialFilters]);
+
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const { name, value, type } = e.target;
     const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
@@ -66,14 +75,13 @@ const FilterForm: React.FC<FilterFormProps> = ({ onGenerateRandom, isLoading }) 
   };
 
   const handleRandomize = () => {
-    // Clear filters and generate completely random game
-    setFilters({
-      platforms: '',
-      genres: '',
-      minRating: 0,
-      excludeAdditions: false
-    });
-    onGenerateRandom({});
+    // Clear filters except for locked platform on platform pages
+    const newFilters = filters.platformLocked ? {
+      platforms: filters.platforms,
+      platformLocked: true
+    } : {};
+    setFilters(newFilters);
+    onGenerateRandom(newFilters);
   };
 
   if (loadingFilters) {
@@ -99,24 +107,27 @@ const FilterForm: React.FC<FilterFormProps> = ({ onGenerateRandom, isLoading }) 
       <form onSubmit={handleFormSubmit}>
         {filtersVisible && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Platform
-              </label>
-              <select
-                name="platforms"
-                value={filters.platforms}
-                onChange={handleFilterChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                <option value="">Any Platform</option>
-                {platforms.map(platform => (
-                  <option key={platform.id} value={platform.id}>
-                    {platform.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {!filters.platformLocked && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Platform
+                </label>
+                <select
+                  name="platforms"
+                  value={filters.platforms}
+                  onChange={handleFilterChange}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  disabled={filters.platformLocked}
+                >
+                  <option value="">Any Platform</option>
+                  {platforms.map(platform => (
+                    <option key={platform.id} value={platform.id}>
+                      {platform.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

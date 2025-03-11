@@ -1,3 +1,55 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  h1 {
+    font-size: 2rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  .prose {
+    font-size: 0.9375rem !important;
+  }
+}
+
+/* Improve tap targets on mobile */
+@media (max-width: 640px) {
+  button, 
+  [role="button"],
+  a {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+  
+  input,
+  select {
+    min-height: 44px;
+  }
+}
